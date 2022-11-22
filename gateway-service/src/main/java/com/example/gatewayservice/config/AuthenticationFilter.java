@@ -28,13 +28,13 @@ public class AuthenticationFilter implements GatewayFilter {
 
         if(routerValidator.isSecured.test(request)){
             if(this.isAuthMissing(request)){
-                return this.onError(exchange, "Authorization header is missing in request");
+                return this.onError(exchange, "Authorization header is missing in request", HttpStatus.UNAUTHORIZED);
             }
 
             final String token = this.getAuthHeader(request);
 
             if(jwtUtil.isInvalid(token)){
-                return this.onError(exchange,"Authorization header is invalid");
+                return this.onError(exchange,"Authorization header is invalid", HttpStatus.UNAUTHORIZED);
             }
 
             this.populateRequestWithHeaders(exchange, token);
@@ -43,9 +43,9 @@ public class AuthenticationFilter implements GatewayFilter {
         return chain.filter(exchange);
     }
 
-    private Mono<Void> onError(ServerWebExchange exchange, String err){
+    private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus){
         ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(HttpStatus.UNAUTHORIZED);
+        response.setStatusCode(httpStatus);
         return response.setComplete();
     }
 
